@@ -1,0 +1,696 @@
+local Start=os.clock()
+local tfind,lstr,sfind,sformat,tostr,tonum = table.find,loadstring,string.find,string.format,tostring,tonumber
+Stepped=game:GetService'RunService'.Stepped
+if _G.Executed then
+    _G.Lib:Notification("BotClash", "Pls dont Execute script twice")
+return end
+
+repeat Stepped:wait() until game:IsLoaded()
+_G.Lib = lstr(game:HttpGet("https://raw.githubusercontent.com/SatohShin/botclash/main/GUI"))()
+
+vers = '1.1.6 Premium'
+
+AutoFarm = false
+AutoFarm_Type = ''
+
+Crypt = false
+Crypt_Tier = 1
+Crypt_Chest = false
+in_crypt = false
+
+Egg = false
+Egg_10 = false
+Egg_skip = false
+Egg_num = "robo_lottery004"
+Egg_world = "W_05"
+
+compose = false
+compose_bot = ''
+compose_bots = {}
+
+id = {}
+
+WalkSpeed = game.Players.LocalPlayer.Character.Humanoid.WalkSpeed
+
+infinjump = false
+
+s=0
+m=0
+h=0
+
+del=1
+
+Time = game.ReplicatedStorage.Time
+LP = game.Players.LocalPlayer
+hum = LP.Character.HumanoidRootPart
+GameConfig = require(game:GetService("ReplicatedStorage").Config.GameConfig)
+bb = game:GetService("VirtualUser")
+LP.PlayerGui.ScreenHide.Left.Tools.Settings.Icon.Image = 'rbxassetid://10344352602'
+LP.PlayerGui.ScreenHide.Left.Tools.Settings.bg.BackgroundColor3 = Color3.new(255,255,255)
+
+function getnum(txt)
+local str = ""
+string.gsub(txt,"%d+",function(e)
+str = str..e
+end)
+return str;
+end
+
+local function Button1(button, arg)
+    if (arg == true) then
+        pcall(function()
+            repeat Stepped:wait() until LP.PlayerGui.ScreenChestOpen.RoboFrame.RoboInfo.Visible == true or not Egg
+            repeat Stepped:wait() until button.Visible == true or not Egg
+            if not (Egg) then return false end
+        end)
+    end
+    for i,signal in next, getconnections(button.MouseButton1Click) do
+        signal:Fire()
+    end
+    return true
+end
+
+local function check_targ()
+    for i, v in pairs(game:GetService("Workspace").Robo[tostr(LP.UserId)]:GetDescendants()) do
+        if (v.Name == 'MarkedTarget') then 
+            if (v.Value == nil) then 
+                return false
+            else 
+                return true
+            end
+        end
+    end
+end
+
+function foo(n)
+    n = tonum(n)
+    if (n >= 10^15) then
+        return sformat("%.2fq", n / 10^15)
+    elseif (n >= 10^12) then
+        return sformat("%.2ft", n / 10^12)
+    elseif (n >= 10^9) then
+        return sformat("%.2fb", n / 10^9)
+    elseif (n >= 10^6) then
+        return sformat("%.2fm", n / 10^6)
+    elseif (n >= 10^3) then
+        return sformat("%.2fk", n / 10^3)
+    else
+        return tostr(n)
+    end
+end
+
+Coinzz,Gemzz=0,0
+local function adds(cur,val)
+    if (cur == 'coin') then
+        Coinzz = Coinzz+tonum(val)
+    elseif (cur == 'gem') then
+        Gemzz = Gemzz+tonum(val)
+    end
+_G.vv:Set(("Coins: %s"):format(foo(tonum(Coinzz))))
+_G.vvv:Set(("Gems: %s"):format(foo(tonum(Gemzz))))
+end
+
+local function dun()
+    if pcall(function() if (tostr(LP:GetAttribute("FightZoneTag")) == 'DungeonGame') then end end) and pcall(function() if tostr(LP:GetAttribute("DungeonLevel")) then end end) and tostr(LP:GetAttribute("World")) == 'FightZone' then
+        return true
+    else
+        return false
+    end
+end
+local function farm(arg)
+    if Crypt and not dun() then return end
+    val=tonum(game:GetService("Players").LocalPlayer.PlayerGui.Data:GetAttribute("SoftCurrency"))
+	val2=tonum(game:GetService("Players").LocalPlayer.PlayerGui.Data:GetAttribute("HardCurrency"))
+    local Closest
+	local Distance = 2000
+	for i,v in pairs(game:GetService("Workspace").NPC:GetChildren()) do
+		if sfind(v.Name, AutoFarm_Type) and v:FindFirstChild("ModelObj") and v:FindFirstChild("SetTargetRE") then
+		    local newDistance = (v.Position - hum.Position).magnitude
+		    if (newDistance < Distance) then
+                Closest = v
+    			Distance = newDistance
+		    end
+		end
+	end
+    if (type(Closest) ~= 'userdata') then return 'no mobs' end
+    local g,e = 0,0 
+    if not pcall(function()
+        Closest:FindFirstChild("SetTargetRE"):FireServer(bit32.bxor(LP.UserId, Time:GetAttribute("s"), Time.Value));
+    end) then print'not set targ' return end
+    if (arg == 'basic') then
+        repeat if AutoFarm then game:GetService("Players").LocalPlayer.PlayerGui.ScreenRoboMain.Enabled = false end Stepped:wait() g=g+1 if g>140 or not AutoFarm then return 'false1' end until check_targ() == true
+        repeat if AutoFarm then game:GetService("Players").LocalPlayer.PlayerGui.ScreenRoboMain.Enabled = false end Stepped:wait() if check_targ() == false then e=e+1 if e>140 or not AutoFarm then return false end end until not Closest or not Closest:FindFirstChild("ModelObj") or not Closest:FindFirstChild("SetTargetRE")
+        adds('coin',tonum(game:GetService("Players").LocalPlayer.PlayerGui.Data:GetAttribute("SoftCurrency"))-val)
+        adds('gem',tonum(game:GetService("Players").LocalPlayer.PlayerGui.Data:GetAttribute("HardCurrency"))-val2)
+        wait(del)
+        return true
+    elseif (arg == 'crypt') then
+        repeat Stepped:wait() g=g+1 if (g>140) or not Crypt then return 'false' end until check_targ() == true
+        repeat Stepped:wait() if check_targ() == false then e=e+1 if (e>140) or not Crypt then return 'false' end end until not Closest or not Closest:FindFirstChild("ModelObj") or not Closest:FindFirstChild("SetTargetRE")
+        adds('coin',tonum(game:GetService("Players").LocalPlayer.PlayerGui.Data:GetAttribute("SoftCurrency"))-val)
+        adds('gem',tonum(game:GetService("Players").LocalPlayer.PlayerGui.Data:GetAttribute("HardCurrency"))-val2)
+        wait(del)
+        return true
+    end
+end
+local function crypt()
+    if not dun() then
+        game:GetService("ReplicatedStorage").Remotes.PlayerTeamUpRF:InvokeServer("CreateTeam")
+        wait(1.3)
+        game:GetService("ReplicatedStorage").Remotes.PlayerTeamUpRF:InvokeServer("StartGame",{["Tier"] = Crypt_Tier})
+        wait(0.7)
+    end
+
+    game:GetService("Players").LocalPlayer.PlayerGui.ScreenRoboMain.Right.BackBtn.Visible = false
+    pcall(function()
+    for i,v in pairs(game:GetService("Workspace").FightZone:GetDescendants()) do
+        if v:IsA("ClickDetector") then
+            fireclickdetector(v)
+        end
+    end
+    game:GetService("Workspace").FightZone["Model/ZoneChest1"].ClickBE:Fire()
+    Button1(LP.PlayerGui.DialogRewardReceive.Root.KnowBtn,false)
+    end)
+    if not Crypt then
+        return false 
+    end
+    local xcv = tostr(farm('crypt'))
+    repeat Stepped:wait() until xcv == 'true' or xcv == 'no mobs' or xcv == 'false'
+    if (xcv ~= 'no mobs') then return false end
+
+    local x=game:GetService("Players").LocalPlayer:GetAttribute("DungeonTierFloor")
+    if (x == (Crypt_Tier..'-5-0')) then
+        if Crypt_Chest then
+            fireclickdetector(game:GetService("Workspace").GemChest["Chest_Gem"].ClickDetector)
+            wait(0.5)
+            Button1(LP.PlayerGui.DialogRandomChest.Root.OpenBtn, false)
+            wait(0.5)
+            if sfind(LP.PlayerGui.DialogConfirm.Root.ScrollingFrame.Desc.Text, ' 1 ') then
+                Button1(LP.PlayerGui.DialogConfirm.Root.YesBtn, false)
+                wait(0.5)
+                Button1(LP.PlayerGui.DialogGiftRobo.RoboFrame.RoboInfo.BtnSkip, false)
+                wait(0.5)
+                Button1(LP.PlayerGui.DialogRewardReceive.Root.KnowBtn,false)
+            else
+                Button1(LP.PlayerGui.DialogConfirm.Root.NoBtn, false)
+            end
+        end
+        wait(0.5)
+        Button1(LP.PlayerGui.ScreenRoboMain.Right.BackBtn, false)
+        wait(0.5)
+        Button1(LP.PlayerGui.DialogConfirm.Root.YesBtn, false)
+        wait(1)
+        return true
+    else
+        wait(1)
+        return false
+    end
+end
+
+local function open_egg()
+    if not Egg then return false end
+    game:GetService("Workspace").Area[Egg_world].Base.Store[Egg_num].DrawRE:FireServer(Egg_10,dvdx)
+    if Egg_skip then
+        if (Button1(LP.PlayerGui.ScreenChestOpen.RoboFrame.RoboInfo.BtnSkip, true) == true) then
+            return true
+        end
+    end
+    return true
+end
+
+_G.maxlvl = {}
+
+local function compoze_bot(...)
+    bot = {...}
+    if bot[1] ~= '' and not table.find(_G.maxlvl, bot[1]) then
+        return _G.bot1
+    end
+    if bot[2] ~= '' and not table.find(_G.maxlvl, bot[2]) then
+        return _G.bot2
+    end
+    if bot[3] ~= '' and not table.find(_G.maxlvl, bot[3]) then
+        return _G.bot3
+    end
+    if bot[4] ~= '' and not table.find(_G.maxlvl, bot[4]) then
+        return _G.bot4
+    end
+    return 'full'
+end
+
+local function compose_bots()
+    if not _G.compose then return false end
+    local main_bot = compoze_bot(_G.bot1,_G.bot2,_G.bot3,_G.bot4)
+    
+    _G.compose_bots = {}
+    for i,v in pairs(game.Players.LocalPlayer.PlayerGui.Data.Robo.Inst:GetChildren()) do
+        if not string.find(v.Name, "Exp") and not string.find(v.Name, "Star") then
+            if not v:GetAttribute("Locked") and not v:GetAttribute("Present") then
+                if v.Name ~= _G.bot1 and v.Name ~= _G.bot2 and v.Name ~= _G.bot3 and v.Name ~= _G.bot4 then
+                    table.insert(_G.compose_bots, v.Name)
+                end
+            end
+        end
+    end
+    
+    if main_bot ~= nil and #_G.compose_bots>10 then
+    if main_bot == 'full' then return 'full' end
+xx = tostring(main_bot)
+local exp_oldd = game:GetService("Players").LocalPlayer.PlayerGui.Data.Robo.Inst[xx]:GetAttribute("EXP")
+exp_old = getnum(exp_oldd)
+        
+        game:GetService("ReplicatedStorage").Remotes.RoboComposeRE:FireServer(tostring(main_bot),{unpack(_G.compose_bots)})
+        wait(1.5)
+
+xxx = tostring(main_bot)
+local exp_neww = game:GetService("Players").LocalPlayer.PlayerGui.Data.Robo.Inst[xxx]:GetAttribute("EXP")
+exp_new = getnum(exp_neww)
+
+        if exp_old == exp_new then
+            table.insert(_G.maxlvl, xxx)
+            --print'max lvl'
+        end
+    else --print'compose_botz = nil or #_G.compose_bots<10'
+    end
+end
+
+local function bot_ids()
+    for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.Data.Robo.Inst:GetChildren()) do
+        if not sfind(v.Name, "Exp") and not sfind(v.Name, "Star") then
+            if v:FindFirstChild("bot_id") then
+                v.bot_id:Destroy()
+            end
+            local x = Instance.new("StringValue", v) x.Name = 'bot_id' x.Value = '#'..i
+        end
+    end
+    for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.DialogInventory.Frame.ItemsFrameRobo.ItemsFrame.ScrollingFrame:GetChildren()) do
+        if not sfind(v.Name, "Exp") and not sfind(v.Name, "Star") then
+            for x,c in pairs(game:GetService("Players").LocalPlayer.PlayerGui.Data.Robo.Inst:GetChildren()) do
+                if (v.Name == c.Name) then
+                    v.Button.POWER.Text = c.bot_id.Value
+                end
+            end
+        end
+    end
+end
+
+local function open_box(arg)
+    for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.Data.BlindBox.Inst:GetChildren()) do
+        if (arg=='true') then    
+            if sfind(v.Name,'_S_') then
+                game:GetService("ReplicatedStorage").Remotes.OpenBlindBoxRF:InvokeServer({[v.Name] = tonum(v:GetAttribute("Count"))})
+            end
+        elseif (arg=='false') then
+            game:GetService("ReplicatedStorage").Remotes.OpenBlindBoxRF:InvokeServer({[v.Name] = tonum(v:GetAttribute("Count"))})
+        end
+    end
+end
+
+local function daily()
+for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenDaily.Frame.FrameList.DailyRewards.DailyFrame:GetChildren()) do
+    for x,z in pairs(v:GetChildren()) do
+        if (z.Name == 'Claim') then
+            if (z.Visible == true) then
+                Button1(z,false)
+            end
+        end
+    end
+end
+Button1(game:GetService("Players").LocalPlayer.PlayerGui.ScreenDaily.Frame.FrameList.DailyWheels.Frame.WheelRoot.bottom.FreeBtn,false)
+for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenDaily.Frame.FrameList.DailySignIn.DailyFrame:GetChildren()) do
+    for x,z in pairs(v:GetChildren()) do
+        if (z.Name == 'Claim') then
+            if (z.Visible == true) then
+                Button1(z,false)
+            end
+        end
+    end
+end
+end
+
+local function timex()
+    s=s+1
+    if (s>59) then
+    s=0
+    m=m+1
+    end
+    if (m>59) then
+    m=0
+    h=h+1
+    end
+    
+    if (s<10) then
+        s1 = '0'..s
+    else
+        s1 = s
+    end
+    if (m<10) then
+        m1 = '0'..m
+    else
+        m1 = m
+    end
+    if (h<10) then
+        h1 = '0'..h
+    else
+        h1 = h
+    end
+    if _G.v then _G.v:Set(('Time: %s:%s:%s'):format(h1,m1,s1)) end
+end
+
+_G.winzcvb = _G.Lib:New({
+  Name = "BotClash Premium -Max9598",
+  FolderToSave = "LibStuff"
+})
+
+repeat Stepped:wait() until _G.winzcvb
+local Farming = _G.winzcvb:Tab("Farming")
+local sec1 = Farming:Section("Basic Farm")
+
+_G.dropdown1 = sec1:Dropdown("Farm Type", {"Nearest","Boxes","Elite only"},"Nearest","Dropdown", function(v)
+	if (v == "Nearest") then
+        AutoFarm_Type = ''
+	elseif (v == "Boxes") then
+        AutoFarm_Type = '_B_'
+	elseif (v == "Elite only") then
+        AutoFarm_Type = '_E'
+    end
+end)
+
+_G.toggle1 = sec1:Toggle("Auto-Farm Toggle", false,"Toggle", function(t)
+    AutoFarm = t
+    spawn(function()
+        while wait() do
+            if not AutoFarm then break end
+            if AutoFarm then
+                farm('basic')
+            end
+        end
+        game:GetService("Players").LocalPlayer.PlayerGui.ScreenRoboMain.Enabled = true
+    end)
+end)
+
+_G.toggle9 = sec1:Toggle("Collect drop", false,"Toggle", function(t)
+    if t then
+        GameConfig.PlayerPickDropBaseRange = 9e9
+    else
+        GameConfig.PlayerPickDropBaseRange = 32
+    end
+end)
+
+sec1:Slider("Delay per npc", 0,10,0.5,1,"Slider", function(t)
+    del = t
+end)
+
+local sec2 = Farming:Section("Crypt Farm")
+
+local dropdown11 = sec2:Dropdown("Crypt Tier", {"Tier 1","Tier 2","Tier 3","Tier 4","Tier 5","Tier 6","Tier 7","Tier 8","Tier 9","Tier 10"},"Tier 1","Dropdown", function(v)
+	if (v == "Tier 1") then
+        Crypt_Tier = 1
+	elseif (v == "Tier 2") then
+        Crypt_Tier = 2
+	elseif (v == "Tier 3") then
+        Crypt_Tier = 3
+    elseif (v == "Tier 4") then
+        Crypt_Tier = 4
+    elseif (v == "Tier 5") then
+        Crypt_Tier = 5
+    elseif (v == "Tier 6") then
+        Crypt_Tier = 6
+    elseif (v == "Tier 7") then
+        Crypt_Tier = 7
+    elseif (v == "Tier 8") then
+        Crypt_Tier = 8
+    elseif (v == "Tier 9") then
+        Crypt_Tier = 9
+    elseif (v == "Tier 10") then
+        Crypt_Tier = 10
+    end
+end)
+
+local toggle3 = sec2:Toggle("Crypt Auto Buy Chest (with keys while farming)", false,"Toggle", function(t)
+    Crypt_Chest = t
+end)
+
+_G.toggle4 = sec2:Toggle("Auto-Crypt Toggle", false,"Toggle", function(t)
+    Crypt = t
+    spawn(function()
+        while wait() do
+            if not Crypt then break end
+            if Crypt then
+                crypt()
+            end
+        end
+        if dun() then game:GetService("Players").LocalPlayer.PlayerGui.ScreenRoboMain.Right.BackBtn.Visible = true end
+    end)
+end)
+
+local sec1x = Farming:Section("Farmed stats")
+
+_G.v = sec1x:Label("Time: 00:00:00")
+_G.vv = sec1x:Label("Coins: 0")
+_G.vvv = sec1x:Label("Gems: 0")
+
+sec1x:Button("Clear Farmed stats", function()
+  Coinzz,Gemzz,h,m,s=0,0,0,0,-1
+  adds('coin',0)
+  _G.v:Set("Time: 00:00:00")
+end)
+
+local Eggs = _G.winzcvb:Tab("Eggs")
+local sec3 = Eggs:Section("Eggs")
+
+local toggle5 = sec3:Toggle("Animation", true,"Toggle", function(t)
+    Egg_skip = t
+    
+    for i,v in pairs(LP.PlayerGui:GetDescendants()) do
+        if v:IsA("LocalScript") and v.Name == "ScreenChestOpen" then
+            guix = v.Parent
+        end
+    end
+    
+    if (Egg_skip == true) then
+        guix.Name = 'ScreenChestOpen'
+    else
+        guix.Name = 's'
+    end
+end)
+
+local sec4 = Eggs:Section("Auto-Buy")
+
+local dropdown2 = sec4:Dropdown("Select World", {'Lost Valley','Space Station','Frozen World','Searing Basin','Desert Ruins','Heavenly Sanctuary', 'Dragon Habitats'},"Lost Valley","Dropdown", function(v)
+    if (v == "Lost Valley") then
+        Egg_world = "W_01"
+    elseif (v == "Space Station") then
+        Egg_world = "W_02"
+    elseif (v == "Frozen World") then
+        Egg_world = "W_03"
+    elseif (v == "Searing Basin") then
+        Egg_world = "W_04"
+    elseif (v == "Desert Ruins") then
+        Egg_world = "W_05"
+    elseif (v == "Heavenly Sanctuary") then
+        Egg_world = "W_06"
+    elseif (v == "Dragon Habitats") then
+        Egg_world = "W_07"
+    end
+end)
+
+local dropdown3 = sec4:Dropdown("Select Egg", {"Egg 1","Egg 2","Egg 3"},"Egg 1","Dropdown", function(v)
+	if (v == "Egg 1") then
+        Egg_num = 'robo_lottery004'
+    elseif (v == "Egg 2") then
+        Egg_num = 'robo_lottery003'
+    elseif (v == "Egg 3") then
+        Egg_num = 'robo_lottery002'
+    end
+end)
+
+local toggle6 = sec4:Toggle("Auto-Buy x10", false,"Toggle", function(t)
+  Egg_10 = t
+end)
+
+local toggle6 = sec4:Toggle("Auto-Buy Advanced", false,"Toggle", function(t)
+    if not t then
+        dvdx = 1
+    else
+        dvdx = 2
+    end
+end)
+
+local toggle7 = sec4:Toggle("Auto-Buy Toggle", false,"Toggle", function(t)
+  Egg = t
+  if Egg then spawn(function() repeat wait(0.2) open_egg() until not Egg end) end
+end)
+
+local Misc = _G.winzcvb:Tab("Bots lvl up")
+local sec6 = Misc:Section("Bots lvl up")
+
+sec6:Button("Show Bot-ID", function()
+  _G.Lib:Notification("BotClash", "Check your Inventory")
+  bot_ids(true)
+end)
+
+_G.bot1,_G.bot2,_G.bot3,_G.bot4 = '','','',''
+
+sec6:Textbox("Bot #1", false, function(t)
+for i,v in pairs(game.Players.LocalPlayer.PlayerGui.Data.Robo.Inst:GetChildren()) do
+    if not string.find(v.Name, "Exp") and not string.find(v.Name, "Star") then
+        if v:FindFirstChild("bot_id") then
+            if v.bot_id.Value == t then
+                _G.bot1 = tostring(v.Name)
+                break
+            end
+        end
+    end
+end
+end)
+
+sec6:Textbox("Bot #2", false, function(t)
+for i,v in pairs(game.Players.LocalPlayer.PlayerGui.Data.Robo.Inst:GetChildren()) do
+    if not string.find(v.Name, "Exp") and not string.find(v.Name, "Star") then
+        if v:FindFirstChild("bot_id") then
+            if v.bot_id.Value == t then
+                _G.bot2 = tostring(v.Name)
+                break
+            end
+        end
+    end
+end
+end)
+
+sec6:Textbox("Bot #3", false, function(t)
+for i,v in pairs(game.Players.LocalPlayer.PlayerGui.Data.Robo.Inst:GetChildren()) do
+    if not string.find(v.Name, "Exp") and not string.find(v.Name, "Star") then
+        if v:FindFirstChild("bot_id") then
+            if v.bot_id.Value == t then
+                _G.bot3 = tostring(v.Name)
+                break
+            end
+        end
+    end
+end
+end)
+
+sec6:Textbox("Bot #4", false, function(t)
+for i,v in pairs(game.Players.LocalPlayer.PlayerGui.Data.Robo.Inst:GetChildren()) do
+    if not string.find(v.Name, "Exp") and not string.find(v.Name, "Star") then
+        if v:FindFirstChild("bot_id") then
+            if v.bot_id.Value == t then
+                _G.bot4 = tostring(v.Name)
+                break
+            end
+        end
+    end
+end
+end)
+
+local togglexx = sec6:Toggle("Auto-Upgrade Bots", false,"Toggle", function(t)
+    _G.compose = t
+    if _G.compose then spawn(function() repeat wait(8) until not _G.compose or compose_bots() == 'full' end) end
+end)
+
+local Misc = _G.winzcvb:Tab("Auto-Claim")
+local sec66 = Misc:Section("Auto-Open Boxes")
+
+sec66:Toggle("Normal Box", false,"Toggle", function(t)
+    Box1 = t
+    if Box1 then spawn(function() repeat open_box('false') wait() until not Box1 end) end
+end)
+
+sec66:Toggle("Premium Box", false,"Toggle", function(t)
+    Box2 = t
+    if Box2 then spawn(function() repeat open_box('true') wait() until not Box2 end) end
+end)
+
+local sec666 = Misc:Section("Auto-Claim Daily Rewards")
+sec666:Toggle("Claim (Wheel, Daily, Online Rewards)", false,"Toggle", function(t)
+    Claim = t
+    if Claim then spawn(function() repeat daily() wait() until not Claim end) end
+end)
+
+local Player = _G.winzcvb:Tab("Player")
+local sec5 = Player:Section("Player Settings")
+
+local sliderz = sec5:Slider("WalkSpeed", 20,300,20,10,"Slider", function(t)
+    WalkSpeed = t
+end)
+if not pcall(function() sliderz:Set(tonum(game.Players.LocalPlayer.Character.Humanoid.WalkSpeed)) end) then sliderz:Set(50) end
+
+local toggle6 = sec5:Toggle("Inf. Jump", false,"Toggle", function(t)
+  infinjump = t
+end)
+
+local Player = _G.winzcvb:Tab("Teleports")
+local sec55 = Player:Section("Areas")
+
+sec55:Button("Show Teleport Gui", function()
+    old = game.Players.LocalPlayer.Character:GetPrimaryPartCFrame()
+    game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(189.998901, 18.2743759, -11.031846))
+    wait(0.3)
+    fireproximityprompt(game:GetService("Workspace").Area['W_01'].Base.RoketInteract.UsePrompt)
+    wait(0.3)
+    game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(old)
+end)
+
+local toggle6 = sec55:Toggle("Ctrl+click tp", false,"Toggle", function(t)
+  tp = t
+end)
+local Mouse = LP:GetMouse()
+Mouse.Button1Down:connect(function() if not tp then return end if not game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftControl) then return end if not Mouse.Target then return end pcall(function() LP.Character:MoveTo(Mouse.Hit.p) end) end)
+
+local Credits = _G.winzcvb:Tab("Credits")
+local sec7 = Credits:Section("Developer/Creator")
+sec7:Label("Max9598#6744 | ID: 688337697458487353")
+local sec8 = Credits:Section("Friend/Motivation")
+sec8:Label("Fosses")
+local secx = Credits:Section("Thx for helping")
+secx:Label("1nch")
+local sec69 = Credits:Section("discord server link")
+sec69:Button("Copy link", function()
+  _G.Lib:Notification("BotClash", "link copied!")
+  setclipboard('https://discord.gg/FGUudD9mqq')
+end)
+print('Loading time: '..os.clock()-Start)
+_G.Executed = true
+
+local Humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+local UserInputService = game:GetService("UserInputService")
+local Key = Enum.KeyCode.Space
+local Holding = false
+
+UserInputService.InputBegan:Connect(function(Input)
+    if (Input.KeyCode == Key) then
+        Holding = true
+        while infinjump and Holding == true do
+            pcall(function()
+                wait()
+                Humanoid:ChangeState(Enum.HumanoidStateType.Seated)
+                wait(0.0001)
+                Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end)
+        end
+    end
+end)
+ 
+UserInputService.InputEnded:Connect(function(Input)
+    if (Input.KeyCode == Key) then
+        Holding = false
+    end
+end)
+
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    bb:CaptureController()
+    bb:ClickButton2(Vector2.new())
+end)
+
+spawn(function()
+    while wait() do
+        pcall(function() LP.Character.Humanoid.WalkSpeed = WalkSpeed end)
+    end
+end)
+
+spawn(function()
+    while wait(1) do
+        if Crypt then timex() AutoFarm=false _G.dropdown1:Set('Nearest') AutoFarm_Type='' _G.toggle1:Set(false) _G.toggle9:Set(true) end
+        if AutoFarm then timex() Crypt=false _G.toggle4:Set(false) _G.toggle9:Set(true) end
+    end
+end)
